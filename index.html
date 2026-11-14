@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Desk">
+<title>Grok Bot Desk</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="web/icons/favicon.png">
+<link rel="apple-touch-icon" href="web/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="web/app.css">
+</head><body>
+<div id="offline" class="offline hidden"></div>
+
+<main id="tab-home" class="tab">
+  <nav class="navbar">
+    <button class="avatar tap" data-go="account" aria-label="Account">J</button>
+    <button class="title tap" data-go="agents">Grok Bot <span class="chev">›</span></button>
+    <span class="spacer"></span>
+    <button class="icon tap" id="btn-search" aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
+    <button class="icon tap" id="btn-bell" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/></svg><i id="bell-dot" class="dot-g hidden"></i></button>
+  </nav>
+  <section class="hero">
+    <div class="balrow"><div id="bal" class="odo display skel">$0.00</div><span class="pill-paper paper-only">PAPER</span></div>
+    <div class="subrow"><span id="today" class="num">+0.00%</span><span id="mult" class="pill-mult num">1.00×</span></div>
+  </section>
+  <div class="chartbox"><canvas id="home-chart"></canvas><div id="chart-empty" class="chart-empty hidden">Waiting for the first trade</div></div>
+  <div class="ranges" id="ranges">
+    <button class="tap on" data-r="LIVE">LIVE</button><button class="tap" data-r="1H">1H</button><button class="tap" data-r="4H">4H</button>
+    <button class="tap" data-r="1D">1D</button><button class="tap" data-r="1W">1W</button><button class="tap" data-r="ALL">ALL</button>
+  </div>
+  <h2 class="sect">Agents <span class="sec" id="running-n">· 5 running</span></h2>
+  <div class="carousel" id="carousel"></div>
+  <h2 class="sect">Activity <button class="seeall tap" data-go="activity">See all</button></h2>
+  <div class="list" id="home-activity"></div>
+  <p class="disclaimer">Signals only. Every button opens the coin on FOMO and you tap Buy or Sell yourself. Nothing here places an order.</p>
+</main>
+
+<main id="tab-agents" class="tab hidden">
+  <nav class="navbar"><span class="bigtitle">Agents</span></nav>
+  <div id="agents-list"></div>
+</main>
+
+<main id="tab-activity" class="tab hidden">
+  <nav class="navbar"><span class="bigtitle">Activity</span></nav>
+  <div class="list" id="activity-list"></div>
+  <button class="more tap hidden" id="activity-more">Load more</button>
+</main>
+
+<main id="tab-account" class="tab hidden">
+  <nav class="navbar"><span class="bigtitle">Account</span></nav>
+  <div id="planb-note" class="planb-note hidden">Published view (plan B) · read-only snapshot from <span id="planb-time">—</span>, refreshed about every 75 s. Settings, pause/resume, mode and test push need the desk server, so they are unavailable here.</div>
+  <div class="group">
+    <div class="row"><span>Mode</span><div class="seg" id="mode-seg"><button class="tap on" data-m="PAPER">PAPER</button><button class="tap" data-m="LIVE">LIVE</button></div></div>
+    <div class="row"><span>Stack</span><span class="num sec" id="acct-stack">—</span></div>
+    <a class="row link tap" id="acct-profile" target="_blank" rel="noopener"><span>Your FOMO profile</span><span class="sec" id="acct-handle">not set</span></a>
+    <div class="row"><span>Notifications</span><span class="sec" id="acct-notify">file log</span></div>
+    <button class="row tap" id="btn-testpush"><span class="blue">Send test push</span><span></span></button>
+    <button class="row tap hidden" id="btn-enable-push"><span class="blue">Enable notifications</span><span></span></button>
+  </div>
+  <div id="settings"></div>
+  <div class="group"><div class="row"><span>Slots</span><span></span></div><div id="slots"></div></div>
+  <p class="disclaimer">LIVE is locked in this build. No referral, no signup, no real money.</p>
+</main>
+
+<section id="screen-coin" class="screen hidden" aria-modal="true">
+  <nav class="navbar"><button class="back tap" data-close>‹ Back</button><span class="spacer"></span><span class="pill-paper paper-only">PAPER</span></nav>
+  <div class="coin-head"><div><div id="coin-name" class="h1">—</div><div id="coin-sub" class="sec">—</div></div><span id="coin-shield" class="shield">—</span></div>
+  <div id="coin-price" class="display num">—</div>
+  <div id="coin-since" class="num"></div>
+  <div class="chartbox tall"><canvas id="coin-chart"></canvas><div id="coin-chart-empty" class="chart-empty hidden">No candles yet</div></div>
+  <div class="stats"><div><span class="sec">Market cap</span><b id="st-mcap" class="num">—</b></div><div><span class="sec">Liquidity</span><b id="st-liq" class="num">—</b></div>
+    <div><span class="sec">24h volume</span><b id="st-vol" class="num">—</b></div><div><span class="sec">Holders</span><b id="st-hold" class="num">n/a</b></div></div>
+  <div id="coin-pos" class="card hidden"></div>
+  <div id="coin-exit" class="card hidden"></div>
+  <a id="coin-btn" class="bigbtn tap" target="_blank" rel="noopener">Buy on FOMO</a>
+</section>
+
+<section id="screen-audit" class="screen hidden" aria-modal="true">
+  <nav class="navbar"><button class="back tap" data-close>‹ Back</button><span class="spacer"></span></nav>
+  <div id="audit-name" class="h1">—</div>
+  <div class="discs" id="discs"></div>
+  <div class="list" id="audit-rows"></div>
+  <div id="audit-verdict" class="verdict"></div>
+  <div class="row toggle"><span>Take apart before buying</span><label class="switch"><input type="checkbox" id="auditor-enabled" checked><i></i></label></div>
+  <a id="audit-btn" class="bigbtn tap" target="_blank" rel="noopener">Open on FOMO</a>
+</section>
+
+<section id="screen-search" class="screen hidden" aria-modal="true">
+  <nav class="navbar"><button class="back tap" data-close>‹ Back</button><input id="search-q" class="search" placeholder="Name, symbol or mint" autocomplete="off"></nav>
+  <div class="list" id="search-res"></div>
+</section>
+
+<section id="screen-bell" class="screen hidden" aria-modal="true">
+  <nav class="navbar"><button class="back tap" data-close>‹ Back</button><span class="bigtitle sm">Pushes</span></nav>
+  <div class="list" id="bell-list"></div>
+</section>
+
+<nav class="tabbar" id="tabbar">
+  <button class="tap on" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9H3z"/></svg>Home</button>
+  <button class="tap" data-tab="agents"><svg viewBox="0 0 24 24"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 20c1-4 11-4 12 0M10 20c1-4 11-4 12 0"/></svg>Agents</button>
+  <button class="tap" data-tab="activity"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Activity</button>
+  <button class="tap" data-tab="account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/></svg>Account</button>
+</nav>
+<div id="toast" class="toast hidden"></div>
+<script src="web/chart.js"></script>
+<script src="web/app.js"></script>
+</body></html>
